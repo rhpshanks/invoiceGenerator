@@ -49,6 +49,7 @@ export const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({
     backgroundSize: '100% 100%',
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'center',
+    paddingBottom: '140px', // Shift bottom calculations and footer up
   } : {};
 
   return (
