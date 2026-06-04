@@ -144,18 +144,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={data.currency}
               onChange={(e) => {
-                const newCurrency = e.target.value;
-                if (newCurrency === 'PKR' && data.currency !== 'PKR') {
-                  const rate = data.exchangeRate || 1;
-                  const newItems = data.items.map(item => ({
-                    ...item,
-                    unitPrice: item.unitPrice * rate,
-                    discount: item.discount * rate
-                  }));
-                  onChange({ ...data, currency: 'PKR', items: newItems, exchangeRate: 1 });
-                } else {
-                  onChange({ ...data, currency: newCurrency });
-                }
+                onChange({ ...data, currency: e.target.value });
               }}
             >
               <option value="PKR">PKR - Pakistani Rupee</option>
@@ -168,37 +157,6 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               <option value="CAD">CAD - Canadian Dollar</option>
             </select>
           </div>
-          {data.currency !== 'PKR' && (
-            <div className="space-y-1">
-              <RequiredLabel text={`Exchange Rate (1 ${data.currency} = ? PKR)`} isValid={data.exchangeRate > 0} />
-              <div className="flex gap-2">
-                <Input 
-                  type="number" 
-                  min="0" 
-                  step="0.01" 
-                  value={data.exchangeRate} 
-                  onChange={(e) => {
-                    const rate = parseFloat(e.target.value) || 1;
-                    onChange({ ...data, exchangeRate: rate });
-                  }} 
-                />
-                <Button 
-                  type="button" 
-                  onClick={() => {
-                    const rate = data.exchangeRate || 1;
-                    const newItems = data.items.map(item => ({
-                      ...item,
-                      unitPrice: item.unitPrice / rate,
-                      discount: item.discount / rate
-                    }));
-                    onChange({ ...data, items: newItems });
-                  }}
-                >
-                  Apply Rate to Values
-                </Button>
-              </div>
-            </div>
-          )}
           {(data.type === 'DEBIT_NOTE' || data.type === 'CREDIT_NOTE') && (
             <div className="space-y-1">
               <RequiredLabel text="Original Invoice Reference" isValid={!!data.originalInvoiceRef} />
