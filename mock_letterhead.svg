@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 150" width="800" height="150">
+  <rect width="800" height="150" fill="#f8fafc" rx="8"/>
+  <rect width="800" height="10" fill="#1e3a8a"/>
+  <circle cx="80" cy="75" r="40" fill="#1e3a8a"/>
+  <text x="80" y="85" font-family="sans-serif" font-size="28" font-weight="bold" fill="#ffffff" text-anchor="middle">TC</text>
+  <text x="150" y="70" font-family="sans-serif" font-size="32" font-weight="bold" fill="#1e3a8a">TechCorp Solutions</text>
+  <text x="150" y="95" font-family="sans-serif" font-size="14" fill="#64748b">123 Business Avenue, Karachi, Pakistan | NTN: 1234567-8 | STRN: 9876543-2</text>
+  <line x1="150" y1="110" x2="750" y2="110" stroke="#cbd5e1" stroke-width="1"/>
+</svg>

@@ -1,0 +1,8 @@
+{
+  "name": "FBR-Compliant Invoice Generator",
+  "description": "Generate, preview, and export audit-grade invoices conforming to FBR Pakistan regulations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
