@@ -434,7 +434,7 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
                 )}
               </button>
             </div>
-            <p className="text-xs text-blue-200">SOP-INV-001 | Pakistan Sales Tax Rules 2006</p>
+
           </div>
           
           <div className="flex-1 flex justify-end gap-3 items-center">
