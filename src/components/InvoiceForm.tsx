@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { InvoiceData, LineItem } from '../types';
 import { Input, Label } from './ui/Input';
 import { Button } from './ui/Button';
-import { PlusCircle, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { PlusCircle, Trash2, CheckCircle2, AlertCircle, Lock } from 'lucide-react';
 
 const ValidationIcon = ({ isValid }: { isValid: boolean }) => {
   return isValid ? (
@@ -22,9 +22,11 @@ const RequiredLabel = ({ text, isValid, showIcon = true }: { text: string, isVal
 interface InvoiceFormProps {
   data: InvoiceData;
   onChange: (data: InvoiceData) => void;
+  subscriptionPlan: 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE';
+  onOpenPricing: () => void;
 }
 
-export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
+export function InvoiceForm({ data, onChange, subscriptionPlan, onOpenPricing }: InvoiceFormProps) {
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
 
@@ -223,9 +225,29 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
             <Input value={data.seller.contact} onChange={(e) => handleChange('contact', e.target.value, 'seller')} />
           </div>
           <div className="space-y-2 col-span-2">
-            <Label>Company Letterhead (Optional)</Label>
-            <div className="flex items-center gap-4 border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
-              {data.letterhead ? (
+            <Label className="flex items-center gap-1.5">
+              <span>Company Letterhead (Optional)</span>
+              {subscriptionPlan === 'STARTER' && (
+                <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.5 rounded border border-indigo-200 uppercase tracking-wide">
+                  Pro Feature
+                </span>
+              )}
+            </Label>
+            <div className="flex items-center gap-4 border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50 relative overflow-hidden">
+              {subscriptionPlan === 'STARTER' ? (
+                <div 
+                  className="flex flex-col items-center justify-center w-full py-3 cursor-pointer group"
+                  onClick={onOpenPricing}
+                >
+                  <Lock className="h-6 w-6 text-indigo-500 mb-1 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm text-indigo-600 font-medium group-hover:underline">
+                    Upgrade to Upload Letterhead
+                  </span>
+                  <span className="text-xs text-gray-400 font-normal mt-0.5">
+                    Letterhead uploads are exclusive to Professional & Enterprise plans
+                  </span>
+                </div>
+              ) : data.letterhead ? (
                 <div className="relative w-full">
                   <img src={data.letterhead} alt="Company Letterhead" className="max-h-24 w-full object-contain rounded border border-gray-200" />
                   <Button 

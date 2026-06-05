@@ -58,3 +58,6 @@ export interface AppState {
   invoices: InvoiceData[];
   currentInvoice: InvoiceData | null;
 }
+
+export type SubscriptionPlan = 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE';
+

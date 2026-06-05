@@ -1,13 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { InvoiceData } from './types';
+import { InvoiceData, SubscriptionPlan } from './types';
 import { InvoiceForm } from './components/InvoiceForm';
 import { InvoicePreview } from './components/InvoicePreview';
 import { Dashboard } from './components/Dashboard';
 import { Button } from './components/ui/Button';
-import { Download, FileText, Printer, Save, LayoutDashboard, ArrowLeft, Plus } from 'lucide-react';
+import { Download, FileText, Printer, Save, LayoutDashboard, ArrowLeft, Plus, Shield, Zap, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { PricingModal } from './components/PricingModal';
+import { supabase } from './supabase';
+import { AuthModal } from './components/AuthModal';
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -24,21 +27,123 @@ export default function App() {
   const previewRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState<'dashboard' | 'create'>('dashboard');
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
-  
+  const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>('STARTER');
+  const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  // Load Auth Session
   useEffect(() => {
-    const saved = localStorage.getItem('fbr-invoices');
-    if (saved) {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Fetch subscription plan from Supabase
+  const fetchSubscription = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_subscriptions')
+        .select('plan')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setSubscriptionPlan(data.plan as SubscriptionPlan);
+      } else {
+        await supabase
+          .from('user_subscriptions')
+          .insert({ user_id: userId, plan: 'STARTER' });
+        setSubscriptionPlan('STARTER');
+      }
+    } catch (err) {
+      console.error("Error fetching subscription:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchSubscription(user.id);
+    } else {
+      const saved = localStorage.getItem('fbr-subscription-plan');
+      setSubscriptionPlan((saved as SubscriptionPlan) || 'STARTER');
+    }
+  }, [user]);
+
+  const handleSelectPlan = async (plan: SubscriptionPlan) => {
+    setSubscriptionPlan(plan);
+    localStorage.setItem('fbr-subscription-plan', plan);
+
+    if (user) {
       try {
-        setInvoices(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse saved invoices");
+        const { error } = await supabase
+          .from('user_subscriptions')
+          .upsert({ user_id: user.id, plan, updated_at: new Date().toISOString() });
+        if (error) throw error;
+      } catch (err) {
+        console.error("Error updating subscription:", err);
       }
     }
-  }, []);
+  };
+
+  // Fetch invoices from Supabase
+  const fetchInvoices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (data) {
+        const mappedInvoices = data.map(row => ({
+          ...row.data,
+          id: row.id
+        }));
+        setInvoices(mappedInvoices);
+      }
+    } catch (err) {
+      console.error("Error fetching invoices:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchInvoices();
+    } else {
+      const saved = localStorage.getItem('fbr-invoices');
+      if (saved) {
+        try {
+          setInvoices(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse saved invoices");
+        }
+      }
+    }
+  }, [user]);
 
   const saveInvoices = (newInvoices: InvoiceData[]) => {
     setInvoices(newInvoices);
     localStorage.setItem('fbr-invoices', JSON.stringify(newInvoices));
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setInvoices([]);
+    const saved = localStorage.getItem('fbr-invoices');
+    if (saved) {
+      try {
+        setInvoices(JSON.parse(saved));
+      } catch (e) {}
+    }
   };
   
   const generateInvoiceNumber = () => {
@@ -84,6 +189,10 @@ export default function App() {
   });
 
   const handleCreateNew = () => {
+    if (subscriptionPlan === 'STARTER' && invoices.length >= 5) {
+      setIsPricingOpen(true);
+      return;
+    }
     setInvoice({
       ...invoice,
       id: generateUUID(),
@@ -102,7 +211,48 @@ export default function App() {
     setView('create');
   };
 
-  const handleSaveInvoice = () => {
+  const handleLoadDemoData = () => {
+    setInvoice({
+      ...invoice,
+      seller: {
+        businessName: 'AeroTech Solutions',
+        address: 'Office 402, 4th Floor, Evacuee Trust Complex, F-5/1, Islamabad',
+        ntn: '1234567-8',
+        strn: '32-77-8765-432-11',
+        contact: '+92 51 111-222-333'
+      },
+      buyer: {
+        businessName: 'Global Prime Industries',
+        address: 'Plot 12, Sector 15, Korangi Industrial Area, Karachi',
+        ntn: '7654321-0',
+        strn: '12-34-5678-901-23',
+        cnic: ''
+      },
+      items: [
+        {
+          id: generateUUID(),
+          description: 'Enterprise Cloud Hosting Subscription',
+          hsnCode: '8523.5100',
+          quantity: 12,
+          unitPrice: 25000,
+          taxRate: 18,
+          discount: 0
+        },
+        {
+          id: generateUUID(),
+          description: 'Professional IT Consulting Services',
+          hsnCode: '9983.1100',
+          quantity: 5,
+          unitPrice: 85000,
+          taxRate: 18,
+          discount: 0
+        }
+      ]
+    });
+  };
+
+
+  const handleSaveInvoice = async () => {
     const existingIndex = invoices.findIndex(inv => inv.id === invoice.id);
     let newInvoices = [...invoices];
     if (existingIndex >= 0) {
@@ -110,8 +260,33 @@ export default function App() {
     } else {
       newInvoices.push(invoice);
     }
-    saveInvoices(newInvoices);
-    alert('Invoice saved successfully to dashboard.');
+
+    if (user) {
+      try {
+        const { error } = await supabase
+          .from('invoices')
+          .upsert({
+            id: invoice.id,
+            user_id: user.id,
+            invoice_number: invoice.invoiceNumber,
+            buyer_name: invoice.buyer.businessName,
+            issue_date: invoice.issueDate,
+            type: invoice.type,
+            currency: invoice.currency,
+            data: invoice,
+            created_at: new Date().toISOString()
+          });
+        if (error) throw error;
+        fetchInvoices();
+        alert('Invoice saved successfully.');
+      } catch (err: any) {
+        console.error("Error saving invoice:", err);
+        alert(`Failed to save invoice: ${err.message}`);
+      }
+    } else {
+      saveInvoices(newInvoices);
+      alert('Invoice saved successfully to local storage.');
+    }
   };
 
   const handlePrint = () => {
@@ -152,6 +327,10 @@ export default function App() {
   };
 
   const exportXML = () => {
+    if (subscriptionPlan === 'STARTER') {
+      setIsPricingOpen(true);
+      return;
+    }
     const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
 <FBR_eInvoice>
   <Header>
@@ -228,7 +407,33 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
             <FileText className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold leading-tight">FBR-Compliant Invoice Generator</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold leading-tight">FBR-Compliant Invoice Generator</h1>
+              <button 
+                onClick={() => setIsPricingOpen(true)}
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 shadow-sm hover:scale-105 transition-transform cursor-pointer ${
+                  subscriptionPlan === 'ENTERPRISE'
+                    ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-amber-400'
+                    : subscriptionPlan === 'PROFESSIONAL'
+                    ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white border-indigo-400'
+                    : 'bg-blue-800 text-blue-200 border-blue-700'
+                }`}
+              >
+                {subscriptionPlan === 'ENTERPRISE' ? (
+                  <>
+                    <Sparkles className="h-2.5 w-2.5" /> Enterprise
+                  </>
+                ) : subscriptionPlan === 'PROFESSIONAL' ? (
+                  <>
+                    <Zap className="h-2.5 w-2.5" /> Professional
+                  </>
+                ) : (
+                  <>
+                    <Shield className="h-2.5 w-2.5" /> Starter (Free)
+                  </>
+                )}
+              </button>
+            </div>
             <p className="text-xs text-blue-200">SOP-INV-001 | Pakistan Sales Tax Rules 2006</p>
           </div>
           
@@ -239,6 +444,7 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
                   <LayoutDashboard className="h-5 w-5 mr-2" /> Dashboard
                 </Button>
                 <div className="h-6 w-px bg-blue-700 mx-2"></div>
+
                 <Button variant="outline" className="bg-blue-800 text-white border-blue-700 hover:bg-blue-700 hover:text-white" onClick={handleSaveInvoice}>
                   <Save className="h-5 w-5 mr-2" /> Save Invoice
                 </Button>
@@ -249,15 +455,40 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
                   <FileText className="h-5 w-5 mr-2" /> IRIS XML
                 </Button>
                 <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={exportPDF}>
-                  <Download className="h-5 w-5 mr-2" /> Download PDF
+                   <Download className="h-5 w-5 mr-2" /> Download PDF
+                 </Button>
+               </>
+             ) : (
+                <Button className="bg-blue-500 hover:bg-blue-600 text-white gap-2" onClick={handleCreateNew}>
+                  <Plus className="h-5 w-5" /> Create Invoice
                 </Button>
-              </>
-            ) : (
-               <Button className="bg-blue-500 hover:bg-blue-600 text-white gap-2" onClick={handleCreateNew}>
-                 <Plus className="h-5 w-5" /> Create Invoice
-               </Button>
-            )}
-          </div>
+             )}
+
+             <div className="h-6 w-px bg-blue-700 mx-2"></div>
+
+             {user ? (
+               <div className="flex items-center gap-3">
+                 <span className="text-xs text-blue-200 truncate max-w-[150px]" title={user.email}>
+                   {user.email}
+                 </span>
+                 <Button 
+                   variant="ghost" 
+                   className="text-xs text-red-200 hover:text-white hover:bg-red-900 px-2.5 py-1.5 h-auto border border-red-700/50 hover:border-red-600 rounded-lg cursor-pointer"
+                   onClick={handleSignOut}
+                 >
+                   Sign Out
+                 </Button>
+               </div>
+             ) : (
+               <Button 
+                variant="outline" 
+                className="bg-blue-800 text-white border-blue-700 hover:bg-blue-750 hover:text-white text-xs px-3 py-1.5 h-auto cursor-pointer"
+                onClick={() => setIsAuthOpen(true)}
+              >
+                Sign In
+              </Button>
+             )}
+           </div>
         </div>
       </header>
       
@@ -273,7 +504,12 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
         <main className="flex-1 flex w-full max-w-[1600px] mx-auto p-4 gap-6 items-start">
           {/* Left Side - Form */}
           <div className="w-1/2 overflow-y-auto pr-2 custom-scrollbar" style={{ maxHeight: 'calc(100vh - 100px)' }}>
-             <InvoiceForm data={invoice} onChange={setInvoice} />
+             <InvoiceForm 
+               data={invoice} 
+               onChange={setInvoice} 
+               subscriptionPlan={subscriptionPlan}
+               onOpenPricing={() => setIsPricingOpen(true)}
+             />
           </div>
           
           {/* Right Side - Preview */}
@@ -289,6 +525,23 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
             </div>
           </div>
         </main>
+      )}
+
+      {isPricingOpen && (
+        <PricingModal 
+          isOpen={isPricingOpen} 
+          onClose={() => setIsPricingOpen(false)} 
+          currentPlan={subscriptionPlan}
+          onSelectPlan={handleSelectPlan}
+        />
+      )}
+
+      {isAuthOpen && (
+        <AuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          onAuthSuccess={() => fetchInvoices()}
+        />
       )}
     </div>
   );
