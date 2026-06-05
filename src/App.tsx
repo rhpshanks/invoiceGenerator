@@ -408,7 +408,7 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold leading-tight">FBR-Compliant Invoice Generator</h1>
+              <h1 className="text-xl font-bold leading-tight">InvoiceDoctor</h1>
               <button 
                 onClick={() => setIsPricingOpen(true)}
                 className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 shadow-sm hover:scale-105 transition-transform cursor-pointer ${

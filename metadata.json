@@ -1,5 +1,5 @@
 {
-  "name": "FBR-Compliant Invoice Generator",
+  "name": "InvoiceDoctor",
   "description": "Generate, preview, and export audit-grade invoices conforming to FBR Pakistan regulations.",
   "requestFramePermissions": [],
   "majorCapabilities": [

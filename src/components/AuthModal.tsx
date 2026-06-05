@@ -157,7 +157,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           <div className="text-center mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
             {mode === 'signin' ? (
               <>
-                New to FBR Invoice Generator?{' '}
+                New to InvoiceDoctor?{' '}
                 <button
                   type="button"
                   onClick={() => { setMode('signup'); setError(null); }}
