@@ -13,6 +13,7 @@ import { PricingModal } from './components/PricingModal';
 import { supabase } from './supabase';
 import { AuthModal } from './components/AuthModal';
 import { ProofsModal } from './components/ProofsModal';
+import { CheckoutModal } from './components/CheckoutModal';
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -37,6 +38,7 @@ export default function App() {
   const [guestCooldownUntil, setGuestCooldownUntil] = useState<number | null>(null);
   const [cooldownRemaining, setCooldownRemaining] = useState<string | null>(null);
   const [selectedProofInvoice, setSelectedProofInvoice] = useState<InvoiceData | null>(null);
+  const [checkoutPlan, setCheckoutPlan] = useState<{ planName: string; planPrice: number } | null>(null);
 
   // Load Auth Session
   useEffect(() => {
@@ -126,19 +128,23 @@ export default function App() {
     }
   }, [user]);
 
-  const handleSelectPlan = async (plan: SubscriptionPlan) => {
-    setSubscriptionPlan(plan);
-    localStorage.setItem('fbr-subscription-plan', plan);
+  const handleSelectPlan = async (plan: SubscriptionPlan, planName: string, price: number) => {
+    if (plan === 'STARTER') {
+      setSubscriptionPlan(plan);
+      localStorage.setItem('fbr-subscription-plan', plan);
 
-    if (user) {
-      try {
-        const { error } = await supabase
-          .from('user_subscriptions')
-          .upsert({ user_id: user.id, plan, updated_at: new Date().toISOString() });
-        if (error) throw error;
-      } catch (err) {
-        console.error("Error updating subscription:", err);
+      if (user) {
+        try {
+          const { error } = await supabase
+            .from('user_subscriptions')
+            .upsert({ user_id: user.id, plan, updated_at: new Date().toISOString() });
+          if (error) throw error;
+        } catch (err) {
+          console.error("Error updating subscription:", err);
+        }
       }
+    } else {
+      setCheckoutPlan({ planName, planPrice: price });
     }
   };
 
@@ -727,6 +733,15 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
           onClose={() => setSelectedProofInvoice(null)}
           invoice={selectedProofInvoice}
           onUpdateInvoice={handleUpdateInvoice}
+        />
+      )}
+
+      {checkoutPlan && (
+        <CheckoutModal
+          isOpen={!!checkoutPlan}
+          onClose={() => setCheckoutPlan(null)}
+          planName={checkoutPlan.planName}
+          planPrice={checkoutPlan.planPrice}
         />
       )}
     </div>

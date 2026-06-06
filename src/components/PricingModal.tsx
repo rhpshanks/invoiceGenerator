@@ -7,7 +7,7 @@ interface PricingModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentPlan: SubscriptionPlan;
-  onSelectPlan: (plan: SubscriptionPlan) => void;
+  onSelectPlan: (plan: SubscriptionPlan, planName: string, price: number) => void;
 }
 
 export function PricingModal({ isOpen, onClose, currentPlan, onSelectPlan }: PricingModalProps) {
@@ -183,7 +183,7 @@ export function PricingModal({ isOpen, onClose, currentPlan, onSelectPlan }: Pri
                 {/* Plan Action Button */}
                 <Button
                   onClick={() => {
-                    onSelectPlan(plan.id);
+                    onSelectPlan(plan.id, plan.name, price);
                     onClose();
                   }}
                   className={`w-full py-2.5 font-semibold text-xs transition-all duration-300 rounded-xl flex items-center justify-center ${
