@@ -197,12 +197,12 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-100">
-                        <Button variant="ghost" size="sm" onClick={() => onViewInvoice(inv)} className="h-8 w-8 p-0 text-gray-500 hover:text-blue-600 hover:bg-blue-50" title="Edit / View">
+                        <button onClick={() => onViewInvoice(inv)} className="flex items-center justify-center h-8 w-8 rounded-md text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit / View">
                           <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => onDuplicate && onDuplicate(inv)} className="h-8 w-8 p-0 text-gray-500 hover:text-green-600 hover:bg-green-50" title="Duplicate (Template)">
+                        </button>
+                        <button onClick={() => onDuplicate && onDuplicate(inv)} className="flex items-center justify-center h-8 w-8 rounded-md text-gray-500 hover:text-green-600 hover:bg-green-50 transition-colors" title="Duplicate (Template)">
                           <Copy className="h-4 w-4" />
-                        </Button>
+                        </button>
                       </div>
                     </td>
                   </tr>
