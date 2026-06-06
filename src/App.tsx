@@ -480,8 +480,17 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900">
       <header className="bg-blue-900 text-white p-4 shadow-md sticky top-0 z-10 flex justify-between items-center">
         <div className="flex items-center gap-3 w-full max-w-7xl mx-auto">
-          <div className="bg-white text-blue-900 p-2 rounded-md">
-            <FileText className="h-6 w-6" />
+          <div className="flex items-center justify-center bg-white rounded-md h-10 w-10 overflow-hidden shadow-sm">
+            <img 
+              src="/logo.png" 
+              alt="InvoiceDoctor" 
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                // Fallback to text icon if logo.png is missing
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text text-blue-900"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>';
+              }}
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
