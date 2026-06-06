@@ -12,9 +12,8 @@ interface CheckoutModalProps {
 export function CheckoutModal({ isOpen, onClose, planName, planPrice }: CheckoutModalProps) {
   const [copied, setCopied] = useState(false);
   const easypaisaNumber = '03009100171';
-  // Assume ~280 PKR to USD for local display, or simply show USD price and let them calculate or just tell them standard rate.
-  // The pricing in PricingModal is in USD. So planPrice is $5 or $19.
-  const pkrAmount = planPrice * 280;
+  // Assume 275 PKR to USD for local display
+  const pkrAmount = planPrice * 275;
 
   if (!isOpen) return null;
 
