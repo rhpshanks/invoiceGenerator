@@ -5,7 +5,7 @@ import { InvoicePreview } from './components/InvoicePreview';
 import { Dashboard } from './components/Dashboard';
 import { Settings } from './components/Settings';
 import { Button } from './components/ui/Button';
-import { FileText, Save, Settings as SettingsIcon, LogOut, Moon, Sun, Mail, Stethoscope, Sparkles, Zap, Shield, LayoutDashboard, Printer, Download, Plus, ArrowLeft } from 'lucide-react';
+import { FileText, Save, Settings as SettingsIcon, LogOut, Moon, Sun, Mail, Stethoscope, Sparkles, Zap, Shield, LayoutDashboard, Printer, Download, Plus, ArrowLeft, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -32,6 +32,9 @@ export default function App() {
   const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [guestSavesCount, setGuestSavesCount] = useState<number>(0);
+  const [guestCooldownUntil, setGuestCooldownUntil] = useState<number | null>(null);
+  const [cooldownRemaining, setCooldownRemaining] = useState<string | null>(null);
 
   // Load Auth Session
   useEffect(() => {
@@ -45,6 +48,49 @@ export default function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Hydrate guest limits from localStorage
+  useEffect(() => {
+    const saves = parseInt(localStorage.getItem('fbr-guest-saves') || '0', 10);
+    const cooldown = parseInt(localStorage.getItem('fbr-guest-cooldown') || '0', 10);
+    setGuestSavesCount(saves);
+    if (cooldown > Date.now()) {
+      setGuestCooldownUntil(cooldown);
+    } else if (cooldown !== 0) {
+      localStorage.removeItem('fbr-guest-cooldown');
+      localStorage.setItem('fbr-guest-saves', '0');
+      setGuestSavesCount(0);
+    }
+  }, []);
+
+  // Manage cooldown countdown timer
+  useEffect(() => {
+    if (!guestCooldownUntil) {
+      setCooldownRemaining(null);
+      return;
+    }
+    
+    // Immediate calculation so it doesn't wait 1s to show
+    const updateTimer = () => {
+      const now = Date.now();
+      if (now >= guestCooldownUntil) {
+        setGuestCooldownUntil(null);
+        setCooldownRemaining(null);
+        setGuestSavesCount(0);
+        localStorage.removeItem('fbr-guest-cooldown');
+        localStorage.setItem('fbr-guest-saves', '0');
+      } else {
+        const diff = guestCooldownUntil - now;
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        setCooldownRemaining(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      }
+    };
+    
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [guestCooldownUntil]);
 
   // Fetch subscription plan from Supabase
   const fetchSubscription = async (userId: string) => {
@@ -203,6 +249,10 @@ export default function App() {
   });
 
   const handleCreateNew = () => {
+    if (!user && guestCooldownUntil && guestCooldownUntil > Date.now()) {
+      alert(`Guest limit reached. Please wait ${cooldownRemaining} or Sign In.`);
+      return;
+    }
     if (subscriptionPlan === 'STARTER' && invoices.length >= 5) {
       setIsPricingOpen(true);
       return;
@@ -232,6 +282,10 @@ export default function App() {
   };
 
   const handleDuplicate = (inv: InvoiceData) => {
+    if (!user && guestCooldownUntil && guestCooldownUntil > Date.now()) {
+      alert(`Guest limit reached. Please wait ${cooldownRemaining} or Sign In.`);
+      return;
+    }
     if (subscriptionPlan === 'STARTER' && invoices.length >= 5) {
       setIsPricingOpen(true);
       return;
@@ -347,6 +401,23 @@ export default function App() {
   };
 
   const handleSaveInvoice = async () => {
+    if (!user) {
+      if (guestCooldownUntil && guestCooldownUntil > Date.now()) {
+        alert(`Guest limit reached. Please wait ${cooldownRemaining} or Sign In.`);
+        return;
+      }
+      
+      const newCount = guestSavesCount + 1;
+      setGuestSavesCount(newCount);
+      localStorage.setItem('fbr-guest-saves', newCount.toString());
+      
+      if (newCount >= 3) {
+        const cooldownTime = Date.now() + 20 * 60 * 1000;
+        setGuestCooldownUntil(cooldownTime);
+        localStorage.setItem('fbr-guest-cooldown', cooldownTime.toString());
+      }
+    }
+    
     await upsertInvoice(invoice);
     alert('Invoice saved successfully.');
   };
@@ -478,6 +549,13 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900">
+      {!user && guestCooldownUntil && cooldownRemaining && (
+        <div className="bg-gradient-to-r from-orange-500 to-rose-500 text-white p-3 text-center text-sm font-semibold flex items-center justify-center gap-2 shadow-sm z-50 relative">
+          <Clock className="h-4 w-4" />
+          <span>Guest Limit Reached: You have generated 3 invoices. Next invoice available in <strong>{cooldownRemaining}</strong>.</span>
+          <button onClick={() => setIsAuthOpen(true)} className="underline font-bold ml-2 hover:text-orange-200 cursor-pointer">Sign In to remove limits</button>
+        </div>
+      )}
       <header className="bg-blue-900 text-white p-4 shadow-md sticky top-0 z-10 flex justify-between items-center">
         <div className="flex items-center gap-3 w-full max-w-7xl mx-auto">
           <div className="bg-white text-blue-900 p-2 rounded-md shadow-sm">
