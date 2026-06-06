@@ -11,7 +11,7 @@ interface SettingsProps {
 type TabType = 'team' | 'api' | 'support';
 
 export function Settings({ subscriptionPlan, onOpenPricing }: SettingsProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('team');
+  const [activeTab, setActiveTab] = useState<TabType>('api');
   const isEnterprise = subscriptionPlan === 'ENTERPRISE';
 
   // Mock State for Team
@@ -66,6 +66,7 @@ export function Settings({ subscriptionPlan, onOpenPricing }: SettingsProps) {
       <div className="w-64 flex-shrink-0">
         <h2 className="text-xl font-bold text-gray-900 mb-6 px-4">Workspace Settings</h2>
         <nav className="space-y-1">
+          {/* TEAM COLLABORATION HIDDEN FOR NOW
           <button
             onClick={() => setActiveTab('team')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
@@ -75,6 +76,7 @@ export function Settings({ subscriptionPlan, onOpenPricing }: SettingsProps) {
             <Users className="h-5 w-5" />
             Team Collaboration
           </button>
+          */}
           <button
             onClick={() => setActiveTab('api')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
@@ -98,86 +100,11 @@ export function Settings({ subscriptionPlan, onOpenPricing }: SettingsProps) {
 
       {/* Main Content Area */}
       <div className="flex-1 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden min-h-[600px]">
-        {/* TEAM TAB */}
+        {/* TEAM TAB HIDDEN FOR NOW
         {activeTab === 'team' && (
-          <div className="p-8">
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-900">Team Collaboration</h3>
-              <p className="text-gray-500 mt-1">Manage who has access to your invoices and workspace.</p>
-            </div>
-
-            <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-8">
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">Invite New Member</h4>
-              <form onSubmit={handleInvite} className="flex gap-4 items-end">
-                <div className="flex-1 space-y-1">
-                  <label className="text-xs font-medium text-gray-700">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="colleague@company.com"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-                <div className="w-40 space-y-1">
-                  <label className="text-xs font-medium text-gray-700">Role</label>
-                  <select
-                    value={inviteRole}
-                    onChange={(e) => setInviteRole(e.target.value)}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                  >
-                    <option value="Admin">Admin</option>
-                    <option value="Editor">Editor</option>
-                    <option value="Viewer">Viewer</option>
-                  </select>
-                </div>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white flex gap-2">
-                  <Plus className="h-4 w-4" /> Send Invite
-                </Button>
-              </form>
-              {!isEnterprise && (
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
-                  <Lock className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-amber-800">
-                    <strong>Enterprise Feature:</strong> Inviting team members requires the Enterprise plan. 
-                    <button onClick={onOpenPricing} className="ml-1 text-blue-600 font-semibold hover:underline">Upgrade Now</button>
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">Active Members</h4>
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 font-medium text-gray-500">Email</th>
-                      <th className="px-6 py-3 font-medium text-gray-500">Role</th>
-                      <th className="px-6 py-3 font-medium text-gray-500">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
-                    {team.map((member) => (
-                      <tr key={member.id}>
-                        <td className="px-6 py-4 font-medium text-gray-900">{member.email}</td>
-                        <td className="px-6 py-4 text-gray-600">{member.role}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            member.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {member.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          ...
         )}
+        */}
 
         {/* API TAB */}
         {activeTab === 'api' && (
