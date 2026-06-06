@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { InvoiceData } from '../types';
+import { InvoiceData, SubscriptionPlan } from '../types';
 import { format } from 'date-fns';
-import { Search, Plus, Filter, FileText, Copy, Edit2, Wallet, Clock, AlertCircle, CheckCircle2, ChevronDown } from 'lucide-react';
+import { Search, Plus, Filter, FileText, Copy, Edit2, Wallet, Clock, AlertCircle, CheckCircle2, ChevronDown, Paperclip } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from './ui/Button';
 
@@ -11,6 +11,9 @@ interface DashboardProps {
   onViewInvoice: (invoice: InvoiceData) => void;
   onUpdateInvoice?: (invoice: InvoiceData) => void;
   onDuplicate?: (invoice: InvoiceData) => void;
+  subscriptionPlan: SubscriptionPlan;
+  onUpgradePrompt: () => void;
+  onManageProofs: (invoice: InvoiceData) => void;
 }
 
 const getStatusColor = (status: string) => {
@@ -30,7 +33,7 @@ const getInvoiceTotal = (inv: InvoiceData) => {
   }, 0);
 };
 
-export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoice, onDuplicate }: DashboardProps) {
+export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoice, onDuplicate, subscriptionPlan, onUpgradePrompt, onManageProofs }: DashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -184,34 +187,71 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
                     </td>
                     <td className="px-6 py-4 truncate max-w-[200px] text-gray-700">{inv.buyer.businessName || 'N/A'}</td>
                     <td className="px-6 py-4">
-                      <div className="relative inline-block">
-                        <select 
-                          className={`px-2.5 py-1 pr-6 rounded-full text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer ${getStatusColor(inv.status || 'DRAFT')}`}
-                          value={inv.status || 'DRAFT'}
-                          onChange={(e) => {
-                            if (onUpdateInvoice) {
-                              onUpdateInvoice({ ...inv, status: e.target.value as any });
-                            }
-                          }}
+                      {subscriptionPlan === 'STARTER' ? (
+                        <div 
+                          className="relative inline-block cursor-pointer"
+                          onClick={onUpgradePrompt}
                         >
-                          <option value="DRAFT" className="bg-white text-gray-900">Draft</option>
-                          <option value="SENT" className="bg-white text-gray-900">Sent</option>
-                          <option value="PAID" className="bg-white text-gray-900">Paid</option>
-                          <option value="OVERDUE" className="bg-white text-gray-900">Overdue</option>
-                        </select>
-                        <ChevronDown className="h-3 w-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
-                      </div>
+                          <div className={`px-2.5 py-1 pr-6 rounded-full text-xs font-semibold border pointer-events-none blur-[1px] opacity-70 ${getStatusColor(inv.status || 'DRAFT')}`}>
+                            {inv.status || 'DRAFT'}
+                          </div>
+                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none blur-[1px]" />
+                          <div className="absolute inset-0 z-10 flex items-center justify-center">
+                            <span className="text-[10px] bg-white/80 px-1 rounded shadow-sm text-blue-600 font-bold whitespace-nowrap">Upgrade</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative inline-block">
+                          <select 
+                            className={`px-2.5 py-1 pr-6 rounded-full text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer ${getStatusColor(inv.status || 'DRAFT')}`}
+                            value={inv.status || 'DRAFT'}
+                            onChange={(e) => {
+                              if (onUpdateInvoice) {
+                                onUpdateInvoice({ ...inv, status: e.target.value as any });
+                              }
+                            }}
+                          >
+                            <option value="DRAFT" className="bg-white text-gray-900">Draft</option>
+                            <option value="SENT" className="bg-white text-gray-900">Sent</option>
+                            <option value="PAID" className="bg-white text-gray-900">Paid</option>
+                            <option value="OVERDUE" className="bg-white text-gray-900">Overdue</option>
+                          </select>
+                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none" />
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-900">
                       {inv.currency} {total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-100">
-                        <button onClick={() => onViewInvoice(inv)} className="flex items-center justify-center h-8 w-8 rounded-md text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit / View">
-                          <Edit2 className="h-4 w-4" />
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (subscriptionPlan === 'STARTER') onUpgradePrompt();
+                            else onManageProofs(inv);
+                          }}
+                          className={`p-1.5 rounded-md transition-colors ${inv.proofs && inv.proofs.length > 0 ? 'text-green-600 bg-green-50 hover:bg-green-100' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}
+                          title="Attach Proofs (Professional+)"
+                        >
+                          <Paperclip className="h-4 w-4" />
                         </button>
-                        <button onClick={() => onDuplicate && onDuplicate(inv)} className="flex items-center justify-center h-8 w-8 rounded-md text-gray-500 hover:text-green-600 hover:bg-green-50 transition-colors" title="Duplicate (Template)">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onDuplicate) onDuplicate(inv);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+                          title="Duplicate Invoice"
+                        >
                           <Copy className="h-4 w-4" />
+                        </button>
+                        <button 
+                          onClick={() => onViewInvoice(inv)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+                          title="Edit Invoice"
+                        >
+                          <Edit2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>

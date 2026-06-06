@@ -12,6 +12,7 @@ import html2canvas from 'html2canvas';
 import { PricingModal } from './components/PricingModal';
 import { supabase } from './supabase';
 import { AuthModal } from './components/AuthModal';
+import { ProofsModal } from './components/ProofsModal';
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -35,6 +36,7 @@ export default function App() {
   const [guestSavesCount, setGuestSavesCount] = useState<number>(0);
   const [guestCooldownUntil, setGuestCooldownUntil] = useState<number | null>(null);
   const [cooldownRemaining, setCooldownRemaining] = useState<string | null>(null);
+  const [selectedProofInvoice, setSelectedProofInvoice] = useState<InvoiceData | null>(null);
 
   // Load Auth Session
   useEffect(() => {
@@ -659,13 +661,16 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
       </header>
       
       {view === 'dashboard' ? (
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 p-6 overflow-y-auto max-w-7xl w-full mx-auto">
           <Dashboard 
             invoices={invoices} 
             onCreateNew={handleCreateNew} 
             onViewInvoice={(inv) => { setInvoice(inv); setView('create'); }}
             onUpdateInvoice={handleUpdateInvoice}
             onDuplicate={handleDuplicate}
+            subscriptionPlan={subscriptionPlan}
+            onUpgradePrompt={() => setIsPricingOpen(true)}
+            onManageProofs={(inv) => setSelectedProofInvoice(inv)}
           />
         </main>
       ) : view === 'settings' ? (
@@ -713,6 +718,15 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
           isOpen={isAuthOpen}
           onClose={() => setIsAuthOpen(false)}
           onAuthSuccess={() => fetchInvoices()}
+        />
+      )}
+
+      {selectedProofInvoice && (
+        <ProofsModal
+          isOpen={!!selectedProofInvoice}
+          onClose={() => setSelectedProofInvoice(null)}
+          invoice={selectedProofInvoice}
+          onUpdateInvoice={handleUpdateInvoice}
         />
       )}
     </div>

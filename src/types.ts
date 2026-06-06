@@ -35,6 +35,13 @@ export interface BuyerDetails {
   cnic: string;
 }
 
+export interface InvoiceProof {
+  id: string;
+  name: string;
+  dataUrl: string;
+  uploadedAt: string;
+}
+
 export interface InvoiceData {
   id: string;
   invoiceNumber: string;
@@ -56,6 +63,7 @@ export interface InvoiceData {
   letterhead?: string; // Base64 letterhead data URL
   notes?: string; // Notes or Terms and Conditions
   template?: 'standard' | 'modern' | 'minimal';
+  proofs?: InvoiceProof[]; // Attached proofs
 }
 export interface SavedClient {
   id: string;
