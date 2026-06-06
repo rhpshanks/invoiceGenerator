@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { InvoiceData } from '../types';
 import { format } from 'date-fns';
-import { Search, Plus, Filter, FileText, Copy, Edit2, DollarSign, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Search, Plus, Filter, FileText, Copy, Edit2, Wallet, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from './ui/Button';
 
@@ -72,7 +72,7 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
               <p className="text-sm font-medium text-gray-500 mb-1">Total Revenue</p>
               <h3 className="text-2xl font-bold text-gray-900">Rs {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
             </div>
-            <div className="bg-green-50 p-3 rounded-full"><DollarSign className="h-6 w-6 text-green-600" /></div>
+            <div className="bg-green-50 p-3 rounded-full"><Wallet className="h-6 w-6 text-green-600" /></div>
           </div>
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
