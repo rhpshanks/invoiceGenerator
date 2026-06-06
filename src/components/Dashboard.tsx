@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { InvoiceData } from '../types';
 import { format } from 'date-fns';
-import { Search, Plus, Filter, FileText, Copy, Edit2 } from 'lucide-react';
+import { Search, Plus, Filter, FileText, Copy, Edit2, DollarSign, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from './ui/Button';
 
 interface DashboardProps {
@@ -21,6 +22,14 @@ const getStatusColor = (status: string) => {
   }
 };
 
+const getInvoiceTotal = (inv: InvoiceData) => {
+  return inv.items.reduce((acc, item) => {
+    const lineValue = (item.quantity * item.unitPrice) - item.discount;
+    const lineTax = lineValue * (item.taxRate / 100);
+    return acc + lineValue + lineTax;
+  }, 0);
+};
+
 export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoice, onDuplicate }: DashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -34,6 +43,16 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
     return matchesSearch && matchesType && matchesStatus;
   }).sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime());
 
+  const totalRevenue = invoices.filter(i => i.status === 'PAID').reduce((acc, inv) => acc + getInvoiceTotal(inv), 0);
+  const overdueAmount = invoices.filter(i => i.status === 'OVERDUE').reduce((acc, inv) => acc + getInvoiceTotal(inv), 0);
+  const sentAmount = invoices.filter(i => i.status === 'SENT').reduce((acc, inv) => acc + getInvoiceTotal(inv), 0);
+  
+  const chartData = [
+    { name: 'Paid', amount: totalRevenue, color: '#10b981' },
+    { name: 'Sent', amount: sentAmount, color: '#3b82f6' },
+    { name: 'Overdue', amount: overdueAmount, color: '#ef4444' }
+  ];
+
   return (
     <div className="w-full max-w-7xl mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
@@ -45,6 +64,44 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
           <Plus className="h-4 w-4" /> Create Invoice
         </Button>
       </div>
+
+      {invoices.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-1">Total Revenue</p>
+              <h3 className="text-2xl font-bold text-gray-900">Rs {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+            </div>
+            <div className="bg-green-50 p-3 rounded-full"><DollarSign className="h-6 w-6 text-green-600" /></div>
+          </div>
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-1">Outstanding</p>
+              <h3 className="text-2xl font-bold text-gray-900">Rs {sentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+            </div>
+            <div className="bg-blue-50 p-3 rounded-full"><Clock className="h-6 w-6 text-blue-600" /></div>
+          </div>
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-1">Overdue</p>
+              <h3 className="text-2xl font-bold text-gray-900">Rs {overdueAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+            </div>
+            <div className="bg-red-50 p-3 rounded-full"><AlertCircle className="h-6 w-6 text-red-600" /></div>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm h-[104px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                <Tooltip cursor={{ fill: 'transparent' }} formatter={(value: number) => `Rs ${value.toLocaleString()}`} />
+                <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex gap-4">
         <div className="flex-1 relative">
@@ -107,11 +164,7 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredInvoices.map(inv => {
-                const total = inv.items.reduce((acc, item) => {
-                  const lineValue = (item.quantity * item.unitPrice) - item.discount;
-                  const lineTax = lineValue * (item.taxRate / 100);
-                  return acc + lineValue + lineTax;
-                }, 0);
+                const total = getInvoiceTotal(inv);
 
                 return (
                   <tr key={inv.id} className="hover:bg-gray-50 group">

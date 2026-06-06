@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { InvoiceData } from '../types';
 import { QRCodeSVG } from 'qrcode.react';
+import { toWords } from 'number-to-words';
 
 interface InvoicePreviewProps {
   data: InvoiceData;
@@ -160,9 +161,12 @@ export const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({
               </div>
             )}
             <div className="pt-4 border-t border-slate-100">
-              <div className="flex justify-between items-center text-lg">
+              <div className="flex justify-between items-center text-lg mb-1">
                 <span className="font-bold text-slate-900">Total</span>
                 <span className="font-extrabold text-indigo-600 text-xl">{data.currency} {grandTotal.toFixed(2)}</span>
+              </div>
+              <div className="text-right text-xs text-slate-500 uppercase">
+                {toWords(grandTotal)} {data.currency}
               </div>
             </div>
           </div>
@@ -268,6 +272,9 @@ export const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({
             <div className="flex justify-between border-t border-gray-900 pt-3 text-base">
               <span className="font-semibold text-gray-900">{data.currency}</span>
               <span className="font-semibold text-gray-900">{grandTotal.toFixed(2)}</span>
+            </div>
+            <div className="text-right text-xs text-gray-500 mt-1 uppercase italic">
+              {toWords(grandTotal)} {data.currency}
             </div>
           </div>
         </div>
@@ -409,6 +416,9 @@ export const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({
           <div className="flex justify-between border-t-2 border-black pt-2 text-lg font-bold">
             <span>GRAND TOTAL ({data.currency})</span>
             <span>{grandTotal.toFixed(2)}</span>
+          </div>
+          <div className="text-right text-xs text-gray-600 mt-1 uppercase italic font-medium">
+            {toWords(grandTotal)} {data.currency}
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { InvoicePreview } from './components/InvoicePreview';
 import { Dashboard } from './components/Dashboard';
 import { Settings } from './components/Settings';
 import { Button } from './components/ui/Button';
-import { Download, FileText, Printer, Save, LayoutDashboard, ArrowLeft, Plus, Shield, Zap, Sparkles, Settings as SettingsIcon, Mail } from 'lucide-react';
+import { FileText, Save, Settings as SettingsIcon, LogOut, Moon, Sun, Mail, Stethoscope, Sparkles, Zap, Shield, LayoutDashboard, Printer, Download, Plus, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -480,17 +480,8 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900">
       <header className="bg-blue-900 text-white p-4 shadow-md sticky top-0 z-10 flex justify-between items-center">
         <div className="flex items-center gap-3 w-full max-w-7xl mx-auto">
-          <div className="flex items-center justify-center bg-white rounded-md h-10 w-10 overflow-hidden shadow-sm">
-            <img 
-              src="/logo.png" 
-              alt="InvoiceDoctor" 
-              className="h-full w-full object-cover"
-              onError={(e) => {
-                // Fallback to text icon if logo.png is missing
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text text-blue-900"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>';
-              }}
-            />
+          <div className="bg-white text-blue-900 p-2 rounded-md shadow-sm">
+            <Stethoscope className="h-6 w-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
