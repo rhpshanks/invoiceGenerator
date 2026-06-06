@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { InvoiceData, SubscriptionPlan } from './types';
+import { InvoiceData, SubscriptionPlan, SavedClient, SavedProfile } from './types';
 import { InvoiceForm } from './components/InvoiceForm';
 import { InvoicePreview } from './components/InvoicePreview';
 import { Dashboard } from './components/Dashboard';
@@ -149,17 +149,30 @@ export default function App() {
   const generateInvoiceNumber = () => {
     const prefix = 'INV';
     const year = format(new Date(), 'yyyy');
-    const randomNum = Math.floor(100000 + Math.random() * 900000);
-    return `${prefix}-${year}-${randomNum}`;
+    
+    const currentYearInvoices = invoices.filter(inv => inv.invoiceNumber.startsWith(`${prefix}-${year}-`));
+    if (currentYearInvoices.length > 0) {
+      const numbers = currentYearInvoices.map(inv => {
+        const parts = inv.invoiceNumber.split('-');
+        return parseInt(parts[2], 10) || 0;
+      });
+      const maxNum = Math.max(...numbers);
+      return `${prefix}-${year}-${String(maxNum + 1).padStart(6, '0')}`;
+    }
+    
+    return `${prefix}-${year}-000001`;
   };
 
   const [invoice, setInvoice] = useState<InvoiceData>({
     id: generateUUID(),
-    invoiceNumber: generateInvoiceNumber(),
+    invoiceNumber: '', // Will be set correctly when handleCreateNew is called
     issueDate: format(new Date(), 'yyyy-MM-dd'),
+    dueDate: format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+    status: 'DRAFT',
     type: 'SALES_TAX',
     currency: 'PKR',
     exchangeRate: 280,
+    template: 'standard',
     customColumns: [],
     seller: {
       businessName: '',
@@ -198,6 +211,8 @@ export default function App() {
       id: generateUUID(),
       invoiceNumber: generateInvoiceNumber(),
       issueDate: format(new Date(), 'yyyy-MM-dd'),
+      dueDate: format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+      status: 'DRAFT',
       items: [{
         id: generateUUID(),
         description: '',
@@ -208,6 +223,27 @@ export default function App() {
         discount: 0
       }]
     });
+    setView('create');
+  };
+
+  const handleUpdateInvoice = async (updated: InvoiceData) => {
+    await upsertInvoice(updated);
+  };
+
+  const handleDuplicate = (inv: InvoiceData) => {
+    if (subscriptionPlan === 'STARTER' && invoices.length >= 5) {
+      setIsPricingOpen(true);
+      return;
+    }
+    const dup = {
+      ...inv,
+      id: generateUUID(),
+      invoiceNumber: generateInvoiceNumber(),
+      issueDate: format(new Date(), 'yyyy-MM-dd'),
+      dueDate: format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+      status: 'DRAFT' as const
+    };
+    setInvoice(dup);
     setView('create');
   };
 
@@ -251,42 +287,67 @@ export default function App() {
     });
   };
 
+  const upsertInvoice = async (targetInvoice: InvoiceData) => {
+    // Extract and save profiles and clients
+    try {
+      const profilesRaw = localStorage.getItem('fbr-profiles');
+      const profiles: SavedProfile[] = profilesRaw ? JSON.parse(profilesRaw) : [];
+      if (targetInvoice.seller.businessName) {
+        const pIdx = profiles.findIndex(p => p.businessName === targetInvoice.seller.businessName);
+        if (pIdx >= 0) profiles[pIdx] = { ...profiles[pIdx], ...targetInvoice.seller };
+        else profiles.push({ ...targetInvoice.seller, id: generateUUID() });
+        localStorage.setItem('fbr-profiles', JSON.stringify(profiles));
+      }
 
-  const handleSaveInvoice = async () => {
-    const existingIndex = invoices.findIndex(inv => inv.id === invoice.id);
+      const clientsRaw = localStorage.getItem('fbr-clients');
+      const clients: SavedClient[] = clientsRaw ? JSON.parse(clientsRaw) : [];
+      if (targetInvoice.buyer.businessName) {
+        const cIdx = clients.findIndex(c => c.businessName === targetInvoice.buyer.businessName);
+        if (cIdx >= 0) clients[cIdx] = { ...clients[cIdx], ...targetInvoice.buyer };
+        else clients.push({ ...targetInvoice.buyer, id: generateUUID() });
+        localStorage.setItem('fbr-clients', JSON.stringify(clients));
+      }
+    } catch (e) {
+      console.error('Error saving profiles/clients', e);
+    }
+
+    const existingIndex = invoices.findIndex(inv => inv.id === targetInvoice.id);
     let newInvoices = [...invoices];
     if (existingIndex >= 0) {
-      newInvoices[existingIndex] = invoice;
+      newInvoices[existingIndex] = targetInvoice;
     } else {
-      newInvoices.push(invoice);
+      newInvoices.push(targetInvoice);
     }
+    setInvoices(newInvoices);
 
     if (user) {
       try {
         const { error } = await supabase
           .from('invoices')
           .upsert({
-            id: invoice.id,
+            id: targetInvoice.id,
             user_id: user.id,
-            invoice_number: invoice.invoiceNumber,
-            buyer_name: invoice.buyer.businessName,
-            issue_date: invoice.issueDate,
-            type: invoice.type,
-            currency: invoice.currency,
-            data: invoice,
+            invoice_number: targetInvoice.invoiceNumber,
+            buyer_name: targetInvoice.buyer.businessName,
+            issue_date: targetInvoice.issueDate,
+            type: targetInvoice.type,
+            currency: targetInvoice.currency,
+            data: targetInvoice,
             created_at: new Date().toISOString()
           });
         if (error) throw error;
-        fetchInvoices();
-        alert('Invoice saved successfully.');
+        // Don't call fetchInvoices here to avoid infinite loops and flicker
       } catch (err: any) {
         console.error("Error saving invoice:", err);
-        alert(`Failed to save invoice: ${err.message}`);
       }
     } else {
       saveInvoices(newInvoices);
-      alert('Invoice saved successfully to local storage.');
     }
+  };
+
+  const handleSaveInvoice = async () => {
+    await upsertInvoice(invoice);
+    alert('Invoice saved successfully.');
   };
 
   const handlePrint = () => {
@@ -498,6 +559,8 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
             invoices={invoices} 
             onCreateNew={handleCreateNew} 
             onViewInvoice={(inv) => { setInvoice(inv); setView('create'); }}
+            onUpdateInvoice={handleUpdateInvoice}
+            onDuplicate={handleDuplicate}
           />
         </main>
       ) : (

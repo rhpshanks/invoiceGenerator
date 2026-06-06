@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { InvoiceData, LineItem } from '../types';
+import React, { useState, useEffect } from 'react';
+import { InvoiceData, LineItem, SavedProfile, SavedClient } from '../types';
 import { Input, Label } from './ui/Input';
 import { Button } from './ui/Button';
 import { PlusCircle, Trash2, CheckCircle2, AlertCircle, Lock } from 'lucide-react';
@@ -29,9 +29,35 @@ interface InvoiceFormProps {
 export function InvoiceForm({ data, onChange, subscriptionPlan, onOpenPricing }: InvoiceFormProps) {
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
+  const [savedProfiles, setSavedProfiles] = useState<SavedProfile[]>([]);
+  const [savedClients, setSavedClients] = useState<SavedClient[]>([]);
 
-  const handleChange = (field: keyof InvoiceData | keyof InvoiceData['seller'] | keyof InvoiceData['buyer'], value: any, section?: 'seller' | 'buyer') => {
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem('fbr-profiles');
+      if (p) setSavedProfiles(JSON.parse(p));
+      const c = localStorage.getItem('fbr-clients');
+      if (c) setSavedClients(JSON.parse(c));
+    } catch (e) {}
+  }, []);
+
+  const handleChange = (field: string, value: any, section?: 'seller' | 'buyer') => {
     if (section) {
+      if (field === 'businessName') {
+         if (section === 'seller') {
+            const profile = savedProfiles.find(p => p.businessName === value);
+            if (profile) {
+               onChange({ ...data, seller: { ...data.seller, ...profile, businessName: value } });
+               return;
+            }
+         } else if (section === 'buyer') {
+            const client = savedClients.find(c => c.businessName === value);
+            if (client) {
+               onChange({ ...data, buyer: { ...data.buyer, ...client, businessName: value } });
+               return;
+            }
+         }
+      }
       onChange({
         ...data,
         [section]: {
@@ -113,10 +139,56 @@ export function InvoiceForm({ data, onChange, subscriptionPlan, onOpenPricing }:
 
   return (
     <div className="space-y-8 pb-10">
+      {/* Template Selection */}
+      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-800">Layout Template</h2>
+          {subscriptionPlan !== 'ENTERPRISE' && (
+            <span 
+              className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded border border-amber-200 uppercase tracking-wide cursor-pointer hover:bg-amber-200 transition-colors"
+              onClick={onOpenPricing}
+            >
+              Enterprise Feature
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { id: 'standard', label: 'Standard', desc: 'Classic FBR layout' },
+            { id: 'modern', label: 'Modern', desc: 'Vibrant & bold' },
+            { id: 'minimal', label: 'Minimal', desc: 'Clean & elegant' }
+          ].map(tpl => (
+            <div 
+              key={tpl.id}
+              onClick={() => {
+                if (tpl.id !== 'standard' && subscriptionPlan !== 'ENTERPRISE') {
+                  onOpenPricing();
+                } else {
+                  handleChange('template', tpl.id);
+                }
+              }}
+              className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                (data.template || 'standard') === tpl.id 
+                  ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                  : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+              } ${tpl.id !== 'standard' && subscriptionPlan !== 'ENTERPRISE' ? 'opacity-75' : ''}`}
+            >
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-semibold text-sm text-gray-900">{tpl.label}</span>
+                {tpl.id !== 'standard' && subscriptionPlan !== 'ENTERPRISE' && (
+                  <Lock className="h-3.5 w-3.5 text-gray-400" />
+                )}
+              </div>
+              <p className="text-xs text-gray-500">{tpl.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Basic Info */}
       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">Invoice Configuration</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1">
             <RequiredLabel text="Invoice Type" isValid={true} />
             <select
@@ -136,15 +208,30 @@ export function InvoiceForm({ data, onChange, subscriptionPlan, onOpenPricing }:
             <RequiredLabel text="Date of Issue" isValid={!!data.issueDate} />
             <Input type="date" value={data.issueDate} onChange={(e) => handleChange('issueDate', e.target.value)} />
           </div>
+          <div className="space-y-1">
+            <RequiredLabel text="Due Date" isValid={!!data.dueDate} />
+            <Input type="date" value={data.dueDate || ''} onChange={(e) => handleChange('dueDate', e.target.value)} />
+          </div>
         </div>
         
         {/* Conditional Fields based on Type */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <RequiredLabel text="Currency" isValid={true} />
+            <div className="flex justify-between items-center">
+              <RequiredLabel text="Currency" isValid={true} />
+              {subscriptionPlan === 'STARTER' && (
+                <span 
+                  className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.5 rounded border border-indigo-200 uppercase tracking-wide cursor-pointer hover:bg-indigo-200 transition-colors"
+                  onClick={onOpenPricing}
+                >
+                  Pro Feature
+                </span>
+              )}
+            </div>
             <select
-              className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-75 disabled:bg-gray-50"
               value={data.currency}
+              disabled={subscriptionPlan === 'STARTER'}
               onChange={(e) => {
                 onChange({ ...data, currency: e.target.value });
               }}
@@ -205,7 +292,10 @@ export function InvoiceForm({ data, onChange, subscriptionPlan, onOpenPricing }:
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1 col-span-2">
             <RequiredLabel text="Business Name" isValid={!!data.seller.businessName} />
-            <Input value={data.seller.businessName} onChange={(e) => handleChange('businessName', e.target.value, 'seller')} />
+            <Input list="saved-profiles" value={data.seller.businessName} onChange={(e) => handleChange('businessName', e.target.value, 'seller')} placeholder="Select saved profile or type new..." />
+            <datalist id="saved-profiles">
+              {savedProfiles.map(p => <option key={p.id} value={p.businessName} />)}
+            </datalist>
           </div>
           <div className="space-y-1 col-span-2">
             <RequiredLabel text="Registered Address" isValid={!!data.seller.address} />
@@ -297,7 +387,10 @@ export function InvoiceForm({ data, onChange, subscriptionPlan, onOpenPricing }:
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1 col-span-2">
             <RequiredLabel text="Business Name / Buyer Name" isValid={!!data.buyer.businessName} />
-            <Input value={data.buyer.businessName} onChange={(e) => handleChange('businessName', e.target.value, 'buyer')} />
+            <Input list="saved-clients" value={data.buyer.businessName} onChange={(e) => handleChange('businessName', e.target.value, 'buyer')} placeholder="Select saved client or type new..." />
+            <datalist id="saved-clients">
+              {savedClients.map(c => <option key={c.id} value={c.businessName} />)}
+            </datalist>
           </div>
           <div className="space-y-1 col-span-2">
             <RequiredLabel text="Address" isValid={!!data.buyer.address} />
@@ -380,11 +473,17 @@ export function InvoiceForm({ data, onChange, subscriptionPlan, onOpenPricing }:
                    <>
                      <button
                        type="button"
-                       onClick={() => setIsAddingColumn(true)}
-                       className="text-blue-500 hover:text-blue-700 bg-blue-50 p-1 rounded-full"
-                       title="Add Custom Column"
+                       onClick={() => {
+                         if (subscriptionPlan === 'STARTER') {
+                           onOpenPricing();
+                         } else {
+                           setIsAddingColumn(true);
+                         }
+                       }}
+                       className={`p-1 rounded-full ${subscriptionPlan === 'STARTER' ? 'text-indigo-500 hover:text-indigo-700 bg-indigo-50' : 'text-blue-500 hover:text-blue-700 bg-blue-50'}`}
+                       title={subscriptionPlan === 'STARTER' ? 'Upgrade to Add Custom Columns' : 'Add Custom Column'}
                      >
-                       <PlusCircle className="h-4 w-4" />
+                       {subscriptionPlan === 'STARTER' ? <Lock className="h-4 w-4" /> : <PlusCircle className="h-4 w-4" />}
                      </button>
                      Description
                    </>
@@ -439,6 +538,19 @@ export function InvoiceForm({ data, onChange, subscriptionPlan, onOpenPricing }:
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Notes & Terms */}
+      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-4">
+        <h2 className="text-lg font-semibold text-gray-800">Notes & Terms</h2>
+        <div className="space-y-1">
+          <textarea
+            className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+            value={data.notes || ''}
+            onChange={(e) => handleChange('notes', e.target.value)}
+            placeholder="Thank you for your business! Payment is due within 14 days. Bank details: ..."
+          />
         </div>
       </div>
     </div>
