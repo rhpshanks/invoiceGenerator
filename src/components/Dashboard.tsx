@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { InvoiceData } from '../types';
 import { format } from 'date-fns';
-import { Search, Plus, Filter, FileText, Copy, Edit2, Wallet, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Search, Plus, Filter, FileText, Copy, Edit2, Wallet, Clock, AlertCircle, CheckCircle2, ChevronDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from './ui/Button';
 
@@ -127,6 +127,7 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
             <option value="DEBIT_NOTE">Debit Note</option>
             <option value="CREDIT_NOTE">Credit Note</option>
           </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
         </div>
         <div className="w-40 relative">
           <select 
@@ -140,6 +141,7 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
             <option value="PAID">Paid</option>
             <option value="OVERDUE">Overdue</option>
           </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
         </div>
       </div>
 
@@ -177,20 +179,23 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
                     </td>
                     <td className="px-6 py-4 truncate max-w-[200px] text-gray-700">{inv.buyer.businessName || 'N/A'}</td>
                     <td className="px-6 py-4">
-                      <select 
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer ${getStatusColor(inv.status || 'DRAFT')}`}
-                        value={inv.status || 'DRAFT'}
-                        onChange={(e) => {
-                          if (onUpdateInvoice) {
-                            onUpdateInvoice({ ...inv, status: e.target.value as any });
-                          }
-                        }}
-                      >
-                        <option value="DRAFT" className="bg-white text-gray-900">Draft</option>
-                        <option value="SENT" className="bg-white text-gray-900">Sent</option>
-                        <option value="PAID" className="bg-white text-gray-900">Paid</option>
-                        <option value="OVERDUE" className="bg-white text-gray-900">Overdue</option>
-                      </select>
+                      <div className="relative inline-block">
+                        <select 
+                          className={`px-2.5 py-1 pr-6 rounded-full text-xs font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer ${getStatusColor(inv.status || 'DRAFT')}`}
+                          value={inv.status || 'DRAFT'}
+                          onChange={(e) => {
+                            if (onUpdateInvoice) {
+                              onUpdateInvoice({ ...inv, status: e.target.value as any });
+                            }
+                          }}
+                        >
+                          <option value="DRAFT" className="bg-white text-gray-900">Draft</option>
+                          <option value="SENT" className="bg-white text-gray-900">Sent</option>
+                          <option value="PAID" className="bg-white text-gray-900">Paid</option>
+                          <option value="OVERDUE" className="bg-white text-gray-900">Overdue</option>
+                        </select>
+                        <ChevronDown className="h-3 w-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
+                      </div>
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-900">
                       {inv.currency} {total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
