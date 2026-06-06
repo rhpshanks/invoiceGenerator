@@ -91,11 +91,11 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
             </div>
           </div>
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm h-[200px]">
-            <h4 className="text-sm font-semibold text-gray-700 mb-4">Revenue Breakdown</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-4">Invoices Status Visualisation</h4>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 20 }} layout="vertical">
+              <BarChart data={chartData} margin={{ top: 0, right: 20, left: 0, bottom: 0 }} layout="vertical">
                 <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} />
+                <YAxis dataKey="name" type="category" width={70} axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} />
                 <Tooltip cursor={{ fill: 'transparent' }} formatter={(value: number) => `Rs ${value.toLocaleString()}`} />
                 <Bar dataKey="amount" radius={[0, 4, 4, 0]} barSize={20}>
                   {chartData.map((entry, index) => (
