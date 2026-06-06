@@ -195,7 +195,7 @@ export function PricingModal({ isOpen, onClose, currentPlan, onSelectPlan }: Pri
                   }`}
                   disabled={isCurrent}
                 >
-                  {isCurrent ? 'Current Plan' : plan.id === 'STARTER' ? 'Downgrade to Free' : 'Upgrade Now'}
+                  {isCurrent ? 'Current Plan' : plan.id === 'STARTER' ? 'Select this Plan' : 'Upgrade Now'}
                 </Button>
               </div>
             );
