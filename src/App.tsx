@@ -506,7 +506,7 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
                   </>
                 ) : (
                   <>
-                    <Shield className="h-2.5 w-2.5" /> Starter (Free)
+                    <Shield className="h-2.5 w-2.5" /> STARTER PLAN
                   </>
                 )}
               </button>
