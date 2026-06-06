@@ -36,8 +36,12 @@ export function Settings({ subscriptionPlan, onOpenPricing }: SettingsProps) {
     }
     if (inviteEmail) {
       setTeam([...team, { id: Date.now().toString(), email: inviteEmail, role: inviteRole, status: 'Pending' }]);
+      
+      const subject = encodeURIComponent(`You've been invited to join InvoiceDoctor`);
+      const body = encodeURIComponent(`Hi there,\n\nYou have been invited to join the team on InvoiceDoctor with the role of ${inviteRole}.\n\nPlease click the link below to accept your invitation and set up your account:\nhttps://invoicedoctor.pk/accept-invite\n\nWelcome aboard!`);
+      window.location.href = `mailto:${inviteEmail}?subject=${subject}&body=${body}`;
+      
       setInviteEmail('');
-      alert('Invite sent successfully!');
     }
   };
 
