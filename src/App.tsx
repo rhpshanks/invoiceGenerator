@@ -14,6 +14,7 @@ import { supabase } from './supabase';
 import { AuthModal } from './components/AuthModal';
 import { ProofsModal } from './components/ProofsModal';
 import { CheckoutModal } from './components/CheckoutModal';
+import { Analytics } from '@vercel/analytics/react';
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -744,6 +745,7 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
           planPrice={checkoutPlan.planPrice}
         />
       )}
+      <Analytics />
     </div>
   );
 }
