@@ -66,33 +66,38 @@ export function Dashboard({ invoices, onCreateNew, onViewInvoice, onUpdateInvoic
       </div>
 
       {invoices.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500 mb-1">Total Revenue</p>
-              <h3 className="text-2xl font-bold text-gray-900">Rs {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+        <div className="space-y-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">Total Revenue</p>
+                <h3 className="text-2xl font-bold text-gray-900">Rs {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+              </div>
+              <div className="bg-green-50 p-3 rounded-full"><Wallet className="h-6 w-6 text-green-600" /></div>
             </div>
-            <div className="bg-green-50 p-3 rounded-full"><Wallet className="h-6 w-6 text-green-600" /></div>
-          </div>
-          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500 mb-1">Outstanding</p>
-              <h3 className="text-2xl font-bold text-gray-900">Rs {sentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">Outstanding</p>
+                <h3 className="text-2xl font-bold text-gray-900">Rs {sentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-full"><Clock className="h-6 w-6 text-blue-600" /></div>
             </div>
-            <div className="bg-blue-50 p-3 rounded-full"><Clock className="h-6 w-6 text-blue-600" /></div>
-          </div>
-          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500 mb-1">Overdue</p>
-              <h3 className="text-2xl font-bold text-gray-900">Rs {overdueAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">Overdue</p>
+                <h3 className="text-2xl font-bold text-gray-900">Rs {overdueAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+              </div>
+              <div className="bg-red-50 p-3 rounded-full"><AlertCircle className="h-6 w-6 text-red-600" /></div>
             </div>
-            <div className="bg-red-50 p-3 rounded-full"><AlertCircle className="h-6 w-6 text-red-600" /></div>
           </div>
-          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm h-[104px]">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm h-[200px]">
+            <h4 className="text-sm font-semibold text-gray-700 mb-4">Revenue Breakdown</h4>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+              <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 20 }} layout="vertical">
+                <XAxis type="number" hide />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} />
                 <Tooltip cursor={{ fill: 'transparent' }} formatter={(value: number) => `Rs ${value.toLocaleString()}`} />
-                <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                <Bar dataKey="amount" radius={[0, 4, 4, 0]} barSize={20}>
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
