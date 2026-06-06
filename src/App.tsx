@@ -3,8 +3,9 @@ import { InvoiceData, SubscriptionPlan, SavedClient, SavedProfile } from './type
 import { InvoiceForm } from './components/InvoiceForm';
 import { InvoicePreview } from './components/InvoicePreview';
 import { Dashboard } from './components/Dashboard';
+import { Settings } from './components/Settings';
 import { Button } from './components/ui/Button';
-import { Download, FileText, Printer, Save, LayoutDashboard, ArrowLeft, Plus, Shield, Zap, Sparkles } from 'lucide-react';
+import { Download, FileText, Printer, Save, LayoutDashboard, ArrowLeft, Plus, Shield, Zap, Sparkles, Settings as SettingsIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -25,7 +26,7 @@ const generateUUID = () => {
 
 export default function App() {
   const previewRef = useRef<HTMLDivElement>(null);
-  const [view, setView] = useState<'dashboard' | 'create'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'create' | 'settings'>('dashboard');
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
   const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>('STARTER');
   const [isPricingOpen, setIsPricingOpen] = useState(false);
@@ -499,30 +500,38 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
           </div>
           
           <div className="flex-1 flex justify-end gap-3 items-center">
-            {view === 'create' ? (
+            {view === 'create' || view === 'settings' ? (
               <>
                 <Button variant="ghost" className="text-blue-100 hover:text-white hover:bg-blue-800" onClick={() => setView('dashboard')}>
                   <LayoutDashboard className="h-5 w-5 mr-2" /> Dashboard
                 </Button>
-                <div className="h-6 w-px bg-blue-700 mx-2"></div>
-
-                <Button variant="outline" className="bg-blue-800 text-white border-blue-700 hover:bg-blue-700 hover:text-white" onClick={handleSaveInvoice}>
-                  <Save className="h-5 w-5 mr-2" /> Save Invoice
-                </Button>
-                <Button variant="outline" className="bg-blue-800 text-white border-blue-700 hover:bg-blue-700 hover:text-white" onClick={handlePrint}>
-                  <Printer className="h-5 w-5 mr-2" /> Print
-                </Button>
-                <Button variant="outline" className="bg-blue-800 text-white border-blue-700 hover:bg-blue-700 hover:text-white" onClick={exportXML}>
-                  <FileText className="h-5 w-5 mr-2" /> IRIS XML
-                </Button>
-                <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={exportPDF}>
-                   <Download className="h-5 w-5 mr-2" /> Download PDF
-                 </Button>
+                {view === 'create' && (
+                  <>
+                    <div className="h-6 w-px bg-blue-700 mx-2"></div>
+                    <Button variant="outline" className="bg-blue-800 text-white border-blue-700 hover:bg-blue-700 hover:text-white" onClick={handleSaveInvoice}>
+                      <Save className="h-5 w-5 mr-2" /> Save Invoice
+                    </Button>
+                    <Button variant="outline" className="bg-blue-800 text-white border-blue-700 hover:bg-blue-700 hover:text-white" onClick={handlePrint}>
+                      <Printer className="h-5 w-5 mr-2" /> Print
+                    </Button>
+                    <Button variant="outline" className="bg-blue-800 text-white border-blue-700 hover:bg-blue-700 hover:text-white" onClick={exportXML}>
+                      <FileText className="h-5 w-5 mr-2" /> IRIS XML
+                    </Button>
+                    <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={exportPDF}>
+                      <Download className="h-5 w-5 mr-2" /> Download PDF
+                    </Button>
+                  </>
+                )}
                </>
              ) : (
-                <Button className="bg-blue-500 hover:bg-blue-600 text-white gap-2" onClick={handleCreateNew}>
-                  <Plus className="h-5 w-5" /> Create Invoice
-                </Button>
+                <>
+                  <Button variant="ghost" className="text-blue-100 hover:text-white hover:bg-blue-800" onClick={() => setView('settings')}>
+                    <SettingsIcon className="h-5 w-5 mr-2" /> Settings
+                  </Button>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white gap-2" onClick={handleCreateNew}>
+                    <Plus className="h-5 w-5" /> Create Invoice
+                  </Button>
+                </>
              )}
 
              <div className="h-6 w-px bg-blue-700 mx-2"></div>
@@ -562,6 +571,10 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
             onUpdateInvoice={handleUpdateInvoice}
             onDuplicate={handleDuplicate}
           />
+        </main>
+      ) : view === 'settings' ? (
+        <main className="flex-1 overflow-y-auto pt-6">
+          <Settings subscriptionPlan={subscriptionPlan} onOpenPricing={() => setIsPricingOpen(true)} />
         </main>
       ) : (
         <main className="flex-1 flex w-full max-w-[1600px] mx-auto p-4 gap-6 items-start">
