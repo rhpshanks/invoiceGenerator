@@ -270,6 +270,7 @@ export const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({
               <span className="font-semibold text-gray-900">{grandTotal.toFixed(2)}</span>
             </div>
           </div>
+        </div>
         <div className="flex justify-between items-end shrink-0 mt-12">
           {data.notes ? (
             <div className="w-1/2 pr-8">
