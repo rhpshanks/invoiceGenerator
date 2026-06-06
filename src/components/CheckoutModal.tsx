@@ -108,7 +108,7 @@ export function CheckoutModal({ isOpen, onClose, planName, planPrice }: Checkout
             onClick={handleWhatsApp}
             className="w-full bg-[#25D366] hover:bg-[#1DA851] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 text-base shadow-lg shadow-green-200"
           >
-            <MessageCircle className="h-5 w-5" /> I Have Paid (Send Proof)
+            <MessageCircle className="h-5 w-5" /> I have Paid and Here is the Proof of Payment
           </Button>
           <p className="text-center text-xs text-gray-400 mt-3 flex items-center justify-center gap-1">
             <Shield className="h-3 w-3" /> Secure manual verification process
