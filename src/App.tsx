@@ -5,7 +5,7 @@ import { InvoicePreview } from './components/InvoicePreview';
 import { Dashboard } from './components/Dashboard';
 import { Settings } from './components/Settings';
 import { Button } from './components/ui/Button';
-import { Download, FileText, Printer, Save, LayoutDashboard, ArrowLeft, Plus, Shield, Zap, Sparkles, Settings as SettingsIcon } from 'lucide-react';
+import { Download, FileText, Printer, Save, LayoutDashboard, ArrowLeft, Plus, Shield, Zap, Sparkles, Settings as SettingsIcon, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -355,6 +355,21 @@ export default function App() {
     window.print();
   };
 
+  const handleEmail = () => {
+    const total = invoice.items.reduce((acc, item) => {
+      const lineValue = (item.quantity * item.unitPrice) - item.discount;
+      const lineTax = lineValue * (item.taxRate / 100);
+      return acc + lineValue + lineTax;
+    }, 0);
+    
+    const formattedTotal = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    const subject = encodeURIComponent(`Invoice ${invoice.invoiceNumber} from ${invoice.seller.businessName || 'Us'}`);
+    const body = encodeURIComponent(`Dear ${invoice.buyer.businessName || 'Customer'},\n\nPlease find the details for invoice ${invoice.invoiceNumber}.\n\nTotal Amount Due: ${invoice.currency} ${formattedTotal}\n\nThank you for your business.\n\nBest regards,\n${invoice.seller.businessName || 'Our Team'}`);
+    
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
   const exportPDF = async () => {
     if (!previewRef.current) return;
     try {
@@ -516,6 +531,9 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
                     </Button>
                     <Button variant="outline" className="bg-blue-800 text-white border-blue-700 hover:bg-blue-700 hover:text-white" onClick={exportXML}>
                       <FileText className="h-5 w-5 mr-2" /> IRIS XML
+                    </Button>
+                    <Button variant="outline" className="bg-blue-800 text-white border-blue-700 hover:bg-blue-700 hover:text-white" onClick={handleEmail}>
+                      <Mail className="h-5 w-5 mr-2" /> Email
                     </Button>
                     <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={exportPDF}>
                       <Download className="h-5 w-5 mr-2" /> Download PDF
