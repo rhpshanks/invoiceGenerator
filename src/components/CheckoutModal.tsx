@@ -159,9 +159,9 @@ export function CheckoutModal({ isOpen, onClose, planName, planPrice, userEmail,
               <div className="pt-2">
                 <Button 
                   onClick={handleLemonSqueezyCheckout}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 text-base shadow-lg shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center text-base shadow-lg shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
-                  Pay with LemonSqueezy <ExternalLink className="h-4 w-4" />
+                  Pay with LemonSqueezy
                 </Button>
                 <p className="text-center text-xs text-gray-400 mt-3 flex items-center justify-center gap-1.5">
                   <Shield className="h-3.5 w-3.5 text-blue-500" /> Merchant of Record: LemonSqueezy
