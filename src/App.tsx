@@ -743,6 +743,25 @@ ${invoice.customColumns?.map(col => `      <CustomColumn name="${col}">${item.cu
           onClose={() => setCheckoutPlan(null)}
           planName={checkoutPlan.planName}
           planPrice={checkoutPlan.planPrice}
+          userEmail={user?.email}
+          userId={user?.id}
+          onSuccess={async () => {
+            const planId = checkoutPlan.planName.toUpperCase() as SubscriptionPlan;
+            setSubscriptionPlan(planId);
+            localStorage.setItem('fbr-subscription-plan', planId);
+            if (user) {
+              try {
+                const { error } = await supabase
+                  .from('user_subscriptions')
+                  .upsert({ user_id: user.id, plan: planId, updated_at: new Date().toISOString() });
+                if (error) throw error;
+              } catch (err) {
+                console.error("Error updating subscription:", err);
+              }
+            }
+            setCheckoutPlan(null);
+            alert(`Successfully upgraded to ${checkoutPlan.planName}!`);
+          }}
         />
       )}
       <Analytics />
