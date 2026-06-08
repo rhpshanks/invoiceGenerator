@@ -56,7 +56,7 @@ export function CheckoutModal({ isOpen, onClose, planName, planPrice, userEmail,
 
   const handleLemonSqueezyCheckout = () => {
     const variantId = planName.toLowerCase().includes('enterprise') 
-      ? '1127157' 
+      ? 'cc4779fd-0bac-4ba3-9bd8-67d62c806082' 
       : '177b5c80-6ded-4f9d-9af8-4d9033f6fe8e';
     let checkoutUrl = `https://invoicedoctor.lemonsqueezy.com/checkout/buy/${variantId}`;
     
