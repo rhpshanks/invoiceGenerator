@@ -36,8 +36,8 @@ export function PricingModal({ isOpen, onClose, currentPlan, onSelectPlan }: Pri
     {
       id: 'PROFESSIONAL' as SubscriptionPlan,
       name: 'Professional',
-      priceMonthly: 5,
-      priceYearly: 48, // $4/mo equivalent
+      priceMonthly: 2,
+      priceYearly: 20, // ~$1.67/mo equivalent
       description: 'For growing businesses requiring full FBR compliance and custom branding.',
       features: [
         'Unlimited invoices',
@@ -56,8 +56,8 @@ export function PricingModal({ isOpen, onClose, currentPlan, onSelectPlan }: Pri
     {
       id: 'ENTERPRISE' as SubscriptionPlan,
       name: 'Enterprise',
-      priceMonthly: 19,
-      priceYearly: 180, // $15/mo equivalent
+      priceMonthly: 12,
+      priceYearly: 120, // $10/mo equivalent
       description: 'For organizations needing custom integration, team collaboration, and dedicated support.',
       features: [
         'All Professional features',
